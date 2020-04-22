@@ -162,7 +162,7 @@ class GroundedScan(object):
             yield {"input_command": command, "input_meaning": meaning,
                    "derivation_representation": example.get("derivation"),
                    "situation_image": situation_image, "situation_representation": example["situation"],
-                   "target_command": target_commands}
+                   "target_command": target_commands, "id" : example.get("id")}
 
     @property
     def situation_image_dimension(self):
@@ -962,6 +962,8 @@ class GroundedScan(object):
             sheet.write(1, 3, no_matches)
         return save_dirs
 
+    
+    
     def visualize_prediction(self, predictions_file: str, only_save_errors=False) -> List[str]:
         """For each prediction in a file visualizes it in a gif and writes to self.save_directory."""
         assert os.path.exists(predictions_file), "Trying to open a non-existing predictions file."

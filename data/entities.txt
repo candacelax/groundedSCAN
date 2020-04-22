@@ -1,0 +1,3 @@
+chair:<e,t>
+circle:<e,t>
+square:<e,t>

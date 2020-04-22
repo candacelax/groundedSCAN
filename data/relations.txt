@@ -1,0 +1,18 @@
+// actions
+pull:<e,<e,t>>
+push:<e,<e,t>>
+walk:<e,t>
+
+// adjectives
+big:<e,t>
+blue:<e,t>
+green:<e,t>
+red:<e,t>
+small:<e,t>
+yellow:<e,t>
+
+// adverbs
+cautiously:<e,t>
+hesitantly:<e,t>
+while_spinning:<e,t>
+while_zigzagging:<e,t>
