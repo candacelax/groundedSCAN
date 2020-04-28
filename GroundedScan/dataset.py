@@ -107,6 +107,9 @@ class GroundedScan(object):
         self._examples_to_visualize.clear()
         self._data_statistics = {split: self.get_empty_data_statistics() for split in self._possible_splits}
 
+    def get_grid_size(self):
+        return self._world.grid_size
+
     def get_empty_split_dict(self):
         return {split: [] for split in self._possible_splits}
 
@@ -162,7 +165,8 @@ class GroundedScan(object):
             yield {"input_command": command, "input_meaning": meaning,
                    "derivation_representation": example.get("derivation"),
                    "situation_image": situation_image, "situation_representation": example["situation"],
-                   "target_command": target_commands, "id" : example.get("id")}
+                   "target_command": target_commands, "id" : example.get("id"),
+                   "filename" : example.get("filename")}
 
     @property
     def situation_image_dimension(self):
