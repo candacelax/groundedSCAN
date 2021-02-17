@@ -8,6 +8,8 @@ objects, each of which is associated with a vector of features. The agent is
 evaluated on its ability to follow one or more instructions in this environment.
 Some instructions require interaction with particular kinds of objects.
 
+**NB**: for **reinforcement learning mode** see branch `rlmode`. Please note that the full reward function including interactions and manners has not been tested with a learned policy yet.
+
 ## TL;DR
 The data used in [the grounded SCAN paper](https://arxiv.org/abs/2003.05161) can be found in the folder `data` of this repository. This data can be used to train models with [the multi-modal baseline from the paper](https://github.com/LauraRuis/multimodal_seq2seq_gSCAN). The exact match accuracies reported in the paper can then be reproduced with the mode `error_analysis` in this repository.
 
@@ -15,6 +17,32 @@ Some data examples (more at bottom of this file, and a demo dataset can be found
 
 ![Random Example](https://raw.githubusercontent.com/LauraRuis/groundedSCAN/master/documentation/movie.gif?token=AGNMPFEDNHCGBORTKISQV526N7N56)
 ![while zigzagging](https://raw.githubusercontent.com/LauraRuis/groundedSCAN/master/documentation/examples_per_adverb/While%20zigzagging/movie.gif?token=AGNMPFGUYKKOMTFIOLMQ42K6N7N7K)
+
+## Leaderboard
+This section contains the leaderboard for scores obtained by papers on gSCAN. To add scores please consider a pull request. 
+
+|                             | Baseline      | GECA | [1]         |  [2]         |  [3]         |
+|-----------------------------|---------------|------|--------------|--------------|--------------|
+| A: Random       | 97.69 +\- 0.22  | 87.6 +\- 1.19  | 97.32   | 94.19 +\- 0.71     | **98.6 +\- 0.95**     |
+| B: Yellow Squares       | 54.96 +\- 39.39  | 34.92 +\- 39.30  | 95.35   | 87.31 +\- 4.38     | **99.08 +\- 0.69**     |
+| C: Red Squares       | 23.51 +\- 21.82  | 78.77 +\- 6.63  | 80.16   | **81.07 +\- 10.12**     | 80.31 +\- 24.51     |
+| D: Novel Direction       | 0.00 +\- 0.00  | 0.00 +\- 0.00  | **5.73**   | -     | 0.16 +\- 0.12     |
+| E: Relativity       | 35.02 +\- 2.35  | 33.19 +\- 3.69  | 75.19   | 52.8 +\- 9.96     | **87.32 +\- 27.38**     |
+| F: Class Inference       | 92.52 +\- 6.75  | 85.99 +\- 0.85  | 98.63   | -     | **99.33 +\- 0.46**     |
+| G: Adverb k=1       | 0.00 +\- 0.00  | 0.00 +\- 0.00  | **11.94**   | -     | -     |
+| G: Adverb k=5       | 0.47 +\- 0.14  | -  | **10.31**   | -     | -     |
+| G: Adverb k=10       | 2.04 +\- 0.95  | -  | **33.28**   | -     | -     |
+| G: Adverb k=50       | 4.63 +\- 2.08  | -  | **40.78**   | -     | -     |
+| H: Adverb to Verb       | 22.70 +\- 4.59  | 11.83 +\- 0.31  | 21.95   | -     | **33.6 +\- 20.81**     |
+| I: Length       | **2.10 +\- 0.05**  | -  |  -  | -     | -     |
+
+
+[1] Yen-Ling Kuo, Boris Katz, and Andrei Barbu. 2020. ["Compositional networks enable systematic generalization for grounded language understanding."](https://arxiv.org/pdf/2008.02742.pdf)
+
+[2] Christina Heinze-Deml and Diane Bouchacourt. 2020. ["Think before you act: A simple baseline for compositional generalization."](https://arxiv.org/pdf/2009.13962.pdf) in EMNLP 2020
+
+[3] Tong Gao, Qi Huang, Raymond J. Mooney. 2020. ["Systematic Generalization on gSCAN with Language Conditioned Embedding"](https://www.aclweb.org/anthology/2020.aacl-main.49.pdf) in AACL-IJCNLP 2020.
+    
 
 ## Data for Paper
 
