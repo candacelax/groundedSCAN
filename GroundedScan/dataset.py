@@ -110,6 +110,18 @@ class GroundedScan(object):
     def get_grid_size(self):
         return self._world.grid_size
 
+    def get_object_vector(self, shape: str, color: str, size: int) -> np.ndarray:
+        return self._object_vocabulary.get_object_vector(shape, color, size)
+
+    def get_object_sizes(self):
+        return self._object_vocabulary.object_sizes
+
+    def get_object_colors(self):
+        return self._object_vocabulary.object_colors
+
+    def get_object_shapes(self):
+        return self._object_vocabulary.object_shapes
+
     def get_empty_split_dict(self):
         return {split: [] for split in self._possible_splits}
 
@@ -139,6 +151,29 @@ class GroundedScan(object):
             del self._data_pairs[split][example_idx]
             del self._template_identifiers[split][example_idx]
 
+    def get_single_example_with_image(self, idx: int, split="train", simple_situation_representation=False) -> dict:
+        example = self._data_pairs[split][idx]
+        command = self.parse_command_repr(example["command"])
+        if example.get("meaning"):
+            meaning = example["meaning"]
+        else:
+            meaning = example["command"]
+        meaning = self.parse_command_repr(meaning)
+        situation = Situation.from_representation(example["situation"])
+        self._world.clear_situation()
+        self.initialize_world(situation)
+        if simple_situation_representation:
+            situation_image = self._world.get_current_situation_grid_repr()
+        else:
+            situation_image = self._world.get_current_situation_image()
+        target_commands = self.parse_command_repr(example["target_commands"])
+        return {"input_command": command, "input_meaning": meaning,
+                "derivation_representation": example.get("derivation"),
+                "situation_image": situation_image, "situation_representation": example["situation"],
+                "target_command": target_commands, "id" : example.get("id"),
+                "filename" : example.get("filename")}
+
+
     def get_examples_with_image(self, split="train", simple_situation_representation=False) -> dict:
         """
         Get data pairs with images in the form of np.ndarray's with RGB values or with 1 pixel per grid cell
@@ -147,26 +182,8 @@ class GroundedScan(object):
         :param simple_situation_representation:  whether to get the full RGB image or a simple representation.
         :return: data examples.
         """
-        for example in self._data_pairs[split]:
-            command = self.parse_command_repr(example["command"])
-            if example.get("meaning"):
-                meaning = example["meaning"]
-            else:
-                meaning = example["command"]
-            meaning = self.parse_command_repr(meaning)
-            situation = Situation.from_representation(example["situation"])
-            self._world.clear_situation()
-            self.initialize_world(situation)
-            if simple_situation_representation:
-                situation_image = self._world.get_current_situation_grid_repr()
-            else:
-                situation_image = self._world.get_current_situation_image()
-            target_commands = self.parse_command_repr(example["target_commands"])
-            yield {"input_command": command, "input_meaning": meaning,
-                   "derivation_representation": example.get("derivation"),
-                   "situation_image": situation_image, "situation_representation": example["situation"],
-                   "target_command": target_commands, "id" : example.get("id"),
-                   "filename" : example.get("filename")}
+        for idx in range(len(self._data_pair[split])):
+            yield self.get_single_example_with_image(idx, split)
 
     @property
     def situation_image_dimension(self):
