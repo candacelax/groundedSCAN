@@ -71,7 +71,7 @@ class GroundedScan(object):
         self._object_vocabulary = ObjectVocabulary(shapes=self._vocabulary.get_semantic_shapes(),
                                                    colors=self._vocabulary.get_semantic_colors(),
                                                    min_size=min_object_size, max_size=max_object_size)
-
+        
         # Initialize the world.
         self._world = World(grid_size=grid_size, colors=self._vocabulary.get_semantic_colors(),
                             object_vocabulary=self._object_vocabulary,
@@ -80,6 +80,7 @@ class GroundedScan(object):
         self._relative_directions = {"n", "e", "s", "w", "ne", "se", "sw", "nw"}
         self._straight_directions = {"n", "e", "s", "w"}
         self._combined_directions = {"ne", "se", "sw", "nw"}
+        self.num_object_attributes = self._object_vocabulary.num_object_attributes
 
         # Generate the grammar.
         self._type_grammar = type_grammar
