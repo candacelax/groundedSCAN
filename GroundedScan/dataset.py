@@ -152,7 +152,24 @@ class GroundedScan(object):
             del self._data_pairs[split][example_idx]
             del self._template_identifiers[split][example_idx]
 
-    def get_single_example_with_image(self, idx: int, split="train", simple_situation_representation=False) -> dict:
+    def get_situation_image(self, situation_representation, simple_situation_representation=False):
+        situation = Situation.from_representation(situation_representation)
+        self._world.clear_situation()
+        self.initialize_world(situation)
+        if simple_situation_representation:
+            situation_image = self._world.get_current_situation_grid_repr()
+        else:
+            situation_image = self._world.get_current_situation_image()
+        return situation_image
+
+    def get_single_example(
+        self,
+        idx: int,
+        split="train",
+        simple_situation_representation=False,
+        return_image=False,
+        return_grids=True
+        ) -> dict:
         example = self._data_pairs[split][idx]
         command = self.parse_command_repr(example["command"])
         if example.get("meaning"):
@@ -160,22 +177,39 @@ class GroundedScan(object):
         else:
             meaning = example["command"]
         meaning = self.parse_command_repr(meaning)
-        situation = Situation.from_representation(example["situation"])
-        self._world.clear_situation()
-        self.initialize_world(situation)
-        if simple_situation_representation:
-            situation_image = self._world.get_current_situation_grid_repr()
-        else:
-            situation_image = self._world.get_current_situation_image()
         target_commands = self.parse_command_repr(example["target_commands"])
-        return {"input_command": command, "input_meaning": meaning,
-                "derivation_representation": example.get("derivation"),
-                "situation_image": situation_image, "situation_representation": example["situation"],
-                "target_command": target_commands, "id" : example.get("id"),
-                "filename" : example.get("filename")}
+
+        return_dict = {
+            "input_command": command,
+            "input_meaning": meaning,
+            "derivation_representation": example.get("derivation"),
+            "situation_representation": example["situation"],
+            "target_command": target_commands,
+            "id" : example.get("id"),
+            "filename" : example.get("filename")
+            }
+
+        if return_image:
+            return_dict["situation_image"] = self.get_situation_image(
+                example["situation"], simple_situation_representation
+                )
+
+        if return_grids:
+            grids = [
+                self._world.get_current_situation_grid_repr()
+            ]
+            situation = Situation.from_representation(example["situation"])
+            derivation = self.parse_derivation_repr(example["derivation"])
+            actual_target_commands, target_demonstration, action = self.demonstrate_command(derivation, situation)
+            for env in target_demonstration:
+                self._world.clear_situation()
+                self.initialize_world(env)
+                grids.append(self._world.get_current_situation_grid_repr())
+            return_dict["grids"] = grids
+        return return_dict
 
 
-    def get_examples_with_image(self, split="train", simple_situation_representation=False) -> dict:
+    def get_examples(self, split="train", simple_situation_representation=False, return_image=False, return_grids=True) -> dict:
         """
         Get data pairs with images in the form of np.ndarray's with RGB values or with 1 pixel per grid cell
         (see encode in class Grid of minigrid.py for details on what such representation looks like).
@@ -183,8 +217,14 @@ class GroundedScan(object):
         :param simple_situation_representation:  whether to get the full RGB image or a simple representation.
         :return: data examples.
         """
-        for idx in range(len(self._data_pair[split])):
-            yield self.get_single_example_with_image(idx, split)
+        for idx in range(len(self._data_pairs[split])):
+            yield self.get_single_example(
+                idx,
+                split,
+                return_image=return_image,
+                simple_situation_representation=simple_situation_representation,
+                return_grids=return_grids
+                )
 
     @property
     def situation_image_dimension(self):
