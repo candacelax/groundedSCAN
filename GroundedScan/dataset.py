@@ -101,12 +101,17 @@ class GroundedScan(object):
         self._coverage_worlds = {split: {} for split in self._possible_splits}
         self._coverage_full = {split: {} for split in self._possible_splits}
 
+        self._actions = [action.name for action in self._world.actions]
+
     def reset_dataset(self):
         self._grammar.reset_grammar()
         self._data_pairs = self.get_empty_split_dict()
         self._template_identifiers = self.get_empty_split_dict()
         self._examples_to_visualize.clear()
         self._data_statistics = {split: self.get_empty_data_statistics() for split in self._possible_splits}
+
+    def get_actions(self):
+        return self._actions
 
     def get_grid_size(self):
         return self._world.grid_size
@@ -152,8 +157,7 @@ class GroundedScan(object):
             del self._data_pairs[split][example_idx]
             del self._template_identifiers[split][example_idx]
 
-    def get_situation_image(self, situation_representation, simple_situation_representation=False):
-        situation = Situation.from_representation(situation_representation)
+    def get_situation_image(self, situation, simple_situation_representation=False):
         self._world.clear_situation()
         self.initialize_world(situation)
         if simple_situation_representation:
@@ -162,13 +166,28 @@ class GroundedScan(object):
             situation_image = self._world.get_current_situation_image()
         return situation_image
 
+    def get_grid_representations(self, situation, derivation):
+        self._world.clear_situation()
+        self.initialize_world(situation)
+        grids = [
+            self._world.get_current_situation_grid_repr()
+        ]
+        
+        derivation = self.parse_derivation_repr(derivation)
+        actual_target_commands, target_demonstration, action = self.demonstrate_command(derivation, situation)
+        for env in target_demonstration:
+            self._world.clear_situation()
+            self.initialize_world(env)
+            grids.append(self._world.get_current_situation_grid_repr())
+        return grids
+
     def get_single_example(
         self,
         idx: int,
         split="train",
         simple_situation_representation=False,
         return_image=False,
-        return_grids=True
+        return_grids=False
         ) -> dict:
         example = self._data_pairs[split][idx]
         command = self.parse_command_repr(example["command"])
@@ -184,6 +203,7 @@ class GroundedScan(object):
             "input_meaning": meaning,
             "derivation_representation": example.get("derivation"),
             "situation_representation": example["situation"],
+            "situation" : Situation.from_representation(example["situation"]),
             "target_command": target_commands,
             "id" : example.get("id"),
             "filename" : example.get("filename")
@@ -195,21 +215,14 @@ class GroundedScan(object):
                 )
 
         if return_grids:
-            grids = [
-                self._world.get_current_situation_grid_repr()
-            ]
-            situation = Situation.from_representation(example["situation"])
-            derivation = self.parse_derivation_repr(example["derivation"])
-            actual_target_commands, target_demonstration, action = self.demonstrate_command(derivation, situation)
-            for env in target_demonstration:
-                self._world.clear_situation()
-                self.initialize_world(env)
-                grids.append(self._world.get_current_situation_grid_repr())
+            grids = self.get_grid_representations(
+                example["situation"], example["derivation"]
+                )
             return_dict["grids"] = grids
         return return_dict
 
 
-    def get_examples(self, split="train", simple_situation_representation=False, return_image=False, return_grids=True) -> dict:
+    def get_examples(self, split="train", simple_situation_representation=False, return_image=False, return_grids=False) -> dict:
         """
         Get data pairs with images in the form of np.ndarray's with RGB values or with 1 pixel per grid cell
         (see encode in class Grid of minigrid.py for details on what such representation looks like).
