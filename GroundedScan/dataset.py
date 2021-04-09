@@ -154,7 +154,12 @@ class GroundedScan(object):
             del self._data_pairs[split][example_idx]
             del self._template_identifiers[split][example_idx]
 
-    def get_single_example_with_image(self, idx: int, split="train", simple_situation_representation=False, save_image=False) -> dict:
+    def get_command_for_single_example(self, idx, split="train"):
+        example = self._data_pairs[split][idx]
+        command = self.parse_command_repr(example["command"])
+        return command
+
+    def get_single_example_with_image(self, idx, split="train", simple_situation_representation=False, save_image=False) -> dict:
         example = self._data_pairs[split][idx]
         command = self.parse_command_repr(example["command"])
         
