@@ -430,7 +430,6 @@ class ObjectVocabulary(object):
             if color not in object_to_object_vector[shape].keys():
                 object_to_object_vector[shape][color] = {}
             object_to_object_vector[shape][color][size] = object_vector
-
         return object_to_object_vector
 
 

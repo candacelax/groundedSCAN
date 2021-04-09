@@ -8,7 +8,9 @@ from collections import Counter, defaultdict
 from typing import List, Tuple, Union, Dict
 import numpy as np
 import os
+from os import path
 import imageio
+from PIL import Image
 import random
 import itertools
 import logging
@@ -151,7 +153,7 @@ class GroundedScan(object):
             del self._data_pairs[split][example_idx]
             del self._template_identifiers[split][example_idx]
 
-    def get_single_example_with_image(self, idx: int, split="train", simple_situation_representation=False) -> dict:
+    def get_single_example_with_image(self, idx: int, split="train", simple_situation_representation=False, save_image=False) -> dict:
         example = self._data_pairs[split][idx]
         command = self.parse_command_repr(example["command"])
         if example.get("meaning"):
@@ -167,11 +169,16 @@ class GroundedScan(object):
         else:
             situation_image = self._world.get_current_situation_image()
         target_commands = self.parse_command_repr(example["target_commands"])
-        return {"input_command": command, "input_meaning": meaning,
-                "derivation_representation": example.get("derivation"),
-                "situation_image": situation_image, "situation_representation": example["situation"],
-                "target_command": target_commands, "id" : example.get("id"),
-                "filename" : example.get("filename")}
+        
+        if save_image:
+            image_path = path.join(self.save_directory, "images", f"{idx}_{split}_timestep=0.png")
+            Image.fromarray(situation_image).save(image_path)
+        return {
+            "input_command": command, "input_meaning": meaning,
+            "derivation_representation": example.get("derivation"),
+            "situation_image": situation_image, "situation_representation": example["situation"],
+            "target_command": target_commands
+            }
 
 
     def get_examples_with_image(self, split="train", simple_situation_representation=False) -> dict:
@@ -182,7 +189,7 @@ class GroundedScan(object):
         :param simple_situation_representation:  whether to get the full RGB image or a simple representation.
         :return: data examples.
         """
-        for idx in range(len(self._data_pair[split])):
+        for idx in range(len(self._data_pairs[split])):
             yield self.get_single_example_with_image(idx, split)
 
     @property
@@ -1023,10 +1030,12 @@ class GroundedScan(object):
     def visualize_data_example(self, data_example: dict) -> str:
         command, meaning, derivation, situation, actual_target_commands, target_demonstration, _ = self.parse_example(
             data_example)
-        mission = ' '.join(["Command:", ' '.join(command), "\nMeaning: ", ' '.join(meaning),
-                            "\nTarget:"] + actual_target_commands)
-        save_dir = self.visualize_command(situation, command, target_demonstration,
-                                          mission=mission)
+        mission = ' '.join([
+            "Command:", ' '.join(command),
+            "\nMeaning: ", ' '.join(meaning),
+            "\nTarget:"
+            ] + actual_target_commands)
+        save_dir = self.visualize_command(situation, command, target_demonstration, mission=mission)
         return save_dir
 
     def visualize_data_examples(self) -> List[str]:
