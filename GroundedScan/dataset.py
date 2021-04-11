@@ -159,29 +159,31 @@ class GroundedScan(object):
         command = self.parse_command_repr(example["command"])
         return command
 
-    def get_single_example_with_image(self, idx, split="train", simple_situation_representation=False, save_image=False) -> dict:
+    def get_single_example(self, idx, split="train", simple_situation_representation=False, return_image=False, save_image=False) -> dict:
         example = self._data_pairs[split][idx]
         command = self.parse_command_repr(example["command"])
         
-        situation_image = self.get_situation_image(
-            Situation.from_representation(example["situation"]),
-            simple_situation_representation
-            )
+        if return_image:
+            situation_image = self.get_situation_image(
+                Situation.from_representation(example["situation"]),
+                simple_situation_representation
+                )
+            if save_image:
+                image_path = path.join(self.save_directory, "images", f"{idx}_{split}_timestep=0.png")
+                Image.fromarray(situation_image).save(image_path)
 
         if example.get("meaning"):
             meaning = example["meaning"]
         else:
             meaning = example["command"]
+
         meaning = self.parse_command_repr(meaning)
         target_commands = self.parse_command_repr(example["target_commands"])
         
-        if save_image:
-            image_path = path.join(self.save_directory, "images", f"{idx}_{split}_timestep=0.png")
-            Image.fromarray(situation_image).save(image_path)
         return {
             "input_command": command, "input_meaning": meaning,
             "derivation_representation": example.get("derivation"),
-            "situation_image": situation_image,
+            "situation_image": situation_image if return_image else None,
             "situation_representation": example["situation"],
             "target_command": target_commands
             }
@@ -204,7 +206,10 @@ class GroundedScan(object):
         :return: data examples.
         """
         for idx in range(len(self._data_pairs[split])):
-            yield self.get_single_example_with_image(idx, split)
+            if return_image:
+                yield self.get_single_example_with_image(idx, split)
+            else:
+                yield self.get_single_example(idx, split)
 
     @property
     def situation_image_dimension(self):
