@@ -103,6 +103,8 @@ class GroundedScan(object):
         self._coverage_worlds = {split: {} for split in self._possible_splits}
         self._coverage_full = {split: {} for split in self._possible_splits}
 
+        self.actions = [action.name for action in self._world.actions]
+
     def reset_dataset(self):
         self._grammar.reset_grammar()
         self._data_pairs = self.get_empty_split_dict()
